@@ -38,6 +38,11 @@ import random
 import time
 import pickle
 
+from absl import flags
+from absl import logging
+
+FLAGS = flags.FLAGS
+
 SHIFT = 0; RIGHT = 1; LEFT = 2;
 MOVES = (SHIFT, RIGHT, LEFT)
 START = ['-START-', '-START2-']
@@ -69,7 +74,7 @@ class Parse(object):
             self.rights.append(DefaultList(0))
 
     def add(self, head, child, label=None):
-        print("Parse add:", head, child, label)
+        logging.debug("Parse add: %s, %s, %s", head, child, label)
         self.heads[child] = head
         self.labels[child] = label
         if child < head:
@@ -185,7 +190,7 @@ def extract_features(words, tags, n0, n, stack, parse):
             return '', '', ''
 
     def get_buffer_context(i, n, data):
-        print("get_buffer_context", i, n, data)
+        logging.debug("get_buffer_context: %s, %s, %s", i, n, data)
         if i == n:
             return '', '', ''
         elif i + 1 >= n:
@@ -346,7 +351,7 @@ class Perceptron(object):
             self.weights[feat] = new_feat_weights
 
     def save(self, path):
-        print("Saving model to %s" % path)
+        logging.info("Saving model to %s" % path)
         pickle.dump(self.weights, open(path, 'w'))
 
     def load(self, path):
@@ -481,11 +486,12 @@ def train(parser, sentences, nr_iter):
             if itn < 5:
                 parser.tagger.train_one(words, gold_tags)
             total += len(words)
-        print('Iter: %s, accuracy: %.3f' % (itn, (float(corr) / float(total))))
+        logging.info('Iter: %s, accuracy: %.3f' % (itn, (float(corr) / float(total))))
         if itn == 4:
             parser.tagger.model.average_weights()
-    print('Averaging weights')
+    logging.info('Averaging weights ...')
     parser.model.average_weights()
+    logging.info("Train done.")
 
 def read_pos(loc):
     for line in open(loc):
@@ -572,14 +578,14 @@ class Test(unittest.TestCase):
         pass
 
     def test_UD_Chinese_GSD(self):
-        print("test_main")
+        logging.info("test_main")
         model_dir = path.join(curdir, path.pardir, "tmp", "model")
         train_loc = path.join(curdir, path.pardir, "data", "UD_Chinese-GSD", "zh-ud-train.conllu")
         heldout_gold = path.join(curdir, path.pardir, "data", "UD_Chinese-GSD", "zh-ud-test.conllu")
         main(model_dir, train_loc, heldout_gold)
 
     def test_UD_English_EWT(self):
-        print("test_UD_English_EWT")
+        logging.info("test_UD_English_EWT")
         model_dir = path.join(curdir, path.pardir, "tmp", "model")
         train_loc = path.join(curdir, path.pardir, "data", "UD_English-EWT", "en-ud-train.conllu")
         heldout_gold = path.join(curdir, path.pardir, "data", "UD_English-EWT", "en-ud-test.conllu")
@@ -589,5 +595,6 @@ def test():
     unittest.main()
 
 if __name__ == '__main__':
+    FLAGS([__file__, '--verbosity', '0'])
     test()
 
