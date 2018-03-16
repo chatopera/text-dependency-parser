@@ -18,134 +18,193 @@ driver for ArcEager parser.
 
 Author: Yoav Goldberg (yoav.goldberg@gmail.com)
 """
-from features import extractors 
-from params import parser
+from __future__ import print_function
+from __future__ import division
 
-opts, args = parser.parse_args()
-
-if opts.trainfile:
-   MODE='train'
-   TRAIN_OUT_FILE=opts.trainfile
-elif opts.externaltrainfile:
-   MODE='write'
-   TRAIN_OUT_FILE=opts.externaltrainfile
-else:
-   MODE='test'
-
-if opts.SCORES_OUT:
-   scores_out = file("eager.scores","w")
-
-DATA_FILE=args[0]
-
-########
-
+import os
 import sys
-from ml import ml
+curdir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(curdir)
 
+if sys.version_info[0] < 3:
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
+    # raise "Must be using Python 3"
+
+from absl import app
+from absl import flags
+from absl import logging
+
+from ml import ml
 from pio import io
 from transitionparser import *
+from features import extractors
 
-featExt = extractors.get(opts.feature_extarctor)
+FLAGS = flags.FLAGS
+'''
+General
+'''
 
-sents = list(io.conll_to_sents(file(DATA_FILE)))
+flags.DEFINE_boolean('ignore_punc', False, 'Ignore Punct File.')
+flags.DEFINE_boolean('only_projective', False, 'Only Projective.')
+flags.DEFINE_boolean('lazypop', True, 'Lazy pop.')
+flags.DEFINE_boolean('unlex', False, 'unlex')
+flags.DEFINE_string('feature_extarctor', 'eager.zhang', 'Feature Extarctor')
+flags.DEFINE_string('model', os.path.join(curdir, os.path.pardir, "tmp", "eager.model"), 'Transition Parser Model.')
 
-if opts.only_proj:
-   import isprojective
-   sents = [s for s in sents if isprojective.is_projective(s)]
+'''
+Train
+'''
+flags.DEFINE_boolean('train', False, 'Train model with train data')
+flags.DEFINE_integer('epoch', 1, 'Train Epoch.')
+flags.DEFINE_string('train_data', os.path.join(curdir, os.path.pardir, "data", "conll.example"), 'Train Data')
 
-if opts.UNLEX:
-   from shared.lemmatize import EnglishMinimalWordSmoother
-   smoother = EnglishMinimalWordSmoother.from_words_file("1000words")
-   for sent in sents:
-      for tok in sent:
-         tok['oform']=tok['form']
-         tok['form'] = smoother.get(tok['form'])
+flags.DEFINE_string('externaltrainfile', None, 'External Train File.')
+# flags.DEFINE_string('modelfile', 'data/weights', 'Model File.')
 
-if MODE=="write":
-   fout = file(TRAIN_OUT_FILE,"w")
-   trainer = LoggingActionDecider(ArcEagerParsingOracle(pop_when_can=opts.POP_WHEN_CAN),featExt,fout)
-   p = ArcEagerParser( trainer)
-   for i,sent in enumerate(sents):
-      sys.stderr.write(". %s " % i)
-      sys.stderr.flush()
-      d=p.parse(sent)
-   sys.exit()
+'''
+Test
+'''
+flags.DEFINE_boolean('test', False, 'Evalutate with test data')
+flags.DEFINE_string('test_data', os.path.join(curdir, os.path.pardir, "data", "conll.example"), 'Test data.')
+flags.DEFINE_string('test_results', os.path.join(curdir, os.path.pardir, "tmp", "eager.test.results"), 'Save scores into disk.')
 
+def transform_conll_sents(conll_file_path):
+    '''
+    Transform CoNLL data as feeding
+    '''
+    sents = list(io.conll_to_sents(file(conll_file_path)))
 
-if MODE=="train":
-   fout = file(TRAIN_OUT_FILE,"w")
-   nactions = 4
-   trainer = MLTrainerActionDecider(ml.MultitronParameters(nactions), ArcEagerParsingOracle(pop_when_can=opts.POP_WHEN_CAN), featExt)
-   p = ArcEagerParser( trainer)
-   import random
-   random.seed("seed")
-   #random.shuffle(sents)
-   for x in xrange(10):
-      print "iter ",x
-      for i,sent in enumerate(sents):
-         if i % 500 == 0: print i,
-         try:
-            d=p.parse(sent)
-         except IndexError,e:
-            print "prob in sent:",i
-            print "\n".join(["%s %s %s %s" % (t['id'],t['form'],t['tag'],t['parent']) for t in sent])
-            raise e
-   trainer.save(fout)
-   sys.exit()
-# test
-elif MODE=="test":
-   p = ArcEagerParser(MLActionDecider(ml.MulticlassModel(opts.modelfile),featExt))
+    if FLAGS.only_projective:
+       import isprojective
+       sents = [s for s in sents if isprojective.is_projective(s)]
 
-good = 0.0
-bad  = 0.0
-complete=0.0
+    if FLAGS.unlex:
+       from shared.lemmatize import EnglishMinimalWordSmoother
+       smoother = EnglishMinimalWordSmoother.from_words_file("1000words")
+       for sent in sents:
+          for tok in sent:
+             tok['oform']=tok['form']
+             tok['form'] = smoother.get(tok['form'])
 
-#main test loop
-reals = set()
-preds = set()
+    return sents
 
-for i,sent in enumerate(sents):
-   sgood=0.0
-   sbad=0.0
-   mistake=False
-   sys.stderr.write("%s %s %s\n"% ( "@@@",i,good/(good+bad+1)))
-   try:
-      d=p.parse(sent)
-   except MLTrainerWrongActionException:
-      # this happens only in "early update" parsers, and then we just go on to
-      # the next sentence..
-      continue
-   sent = d.annotate_allow_none(sent)
-   for tok in sent:
-      if opts.ignore_punc and tok['form'][0] in "`',.-;:!?{}": continue
-      reals.add((i,tok['parent'],tok['id']))
-      preds.add((i,tok['pparent'],tok['id']))
-      if tok['pparent']==-1:continue
-      if tok['parent']==tok['pparent'] or tok['pparent']==-1:
-         good+=1
-         sgood+=1
-      else:
-         bad+=1
-         sbad+=1
-         mistake=True
-   #print 
-   if opts.UNLEX:
-      io.out_conll(sent,parent='pparent',form='oform')
-   else:
-      io.out_conll(sent,parent='pparent',form='form')
-   if not mistake: complete+=1
-   #sys.exit()
-   if opts.SCORES_OUT:
-      scores_out.write("%s\n" % (sgood/(sgood+sbad)))
+def test():
+    '''
+    Test Model
+    '''
+    logging.info("test ...")
+    featExt = extractors.get(FLAGS.feature_extarctor)
+    p = ArcEagerParser(MLActionDecider(ml.MulticlassModel(FLAGS.model), featExt))
+
+    good = 0.0
+    bad  = 0.0
+    complete = 0.0
+
+    #main test loop
+    reals = set()
+    preds = set()
+    with open(FLAGS.test_data, "r") as fin, open(FLAGS.test_results, "w") as fout:
+        sents = transform_conll_sents(FLAGS.test_data)
+        for i,sent in enumerate(sents):
+           sgood=0.0
+           sbad=0.0
+           mistake=False
+           sys.stderr.write("%s %s %s\n"% ( "@@@",i,good/(good+bad+1)))
+           try:
+              d=p.parse(sent)
+           except MLTrainerWrongActionException:
+              # this happens only in "early update" parsers, and then we just go on to
+              # the next sentence..
+              continue
+           sent = d.annotate_allow_none(sent)
+           for tok in sent:
+              if FLAGS.ignore_punc and tok['form'][0] in "`',.-;:!?{}": continue
+              reals.add((i,tok['parent'],tok['id']))
+              preds.add((i,tok['pparent'],tok['id']))
+              if tok['pparent']==-1:continue
+              if tok['parent']==tok['pparent'] or tok['pparent']==-1:
+                 good+=1
+                 sgood+=1
+              else:
+                 bad+=1
+                 sbad+=1
+                 mistake=True
+           #print 
+           if FLAGS.unlex:
+              io.out_conll(sent,parent='pparent',form='oform')
+           else:
+              io.out_conll(sent,parent='pparent',form='form')
+           if not mistake: complete+=1
+           #sys.exit()
+           logging.info("test result: sgood[%s], sbad[%s]", sgood, sbad)
+           if sgood > 0.0 and sbad > 0.0:
+               fout.write("%s\n" % (sgood/(sgood+sbad)))
+        
+        logging.info("accuracy: %s", good/(good+bad))
+        logging.info("complete: %s", complete/len(sents))
+        preds = set([(i,p,c) for i,p,c in preds if p != -1])
+        logging.info("recall: %s", len(preds.intersection(reals))/float(len(reals)))
+        logging.info("precision: %s", len(preds.intersection(reals))/float(len(preds)))
+        logging.info("assigned: %s",len(preds)/float(len(reals)))
+
+def train():
+    '''
+    Train Model
+    '''
+    if FLAGS.model:
+       MODE='train'
+       TRAIN_OUT_FILE=FLAGS.model
+    elif FLAGS.externaltrainfile:
+       '''
+       create feature vector files for training with an external classifier.  If you don't know what it means,
+        just ignore this option.  The model file format is the same as Megam's.
+       '''
+       MODE='write'
+       TRAIN_OUT_FILE=FLAGS.externaltrainfile
+    else:
+       MODE='test'
+
+    featExt = extractors.get(FLAGS.feature_extarctor)
+
+    sents = transform_conll_sents(FLAGS.train_data)
+
+    if MODE=="write":
+       fout = file(TRAIN_OUT_FILE,"w")
+       trainer = LoggingActionDecider(ArcEagerParsingOracle(pop_when_can=FLAGS.lazypop),featExt,fout)
+       p = ArcEagerParser( trainer)
+       for i,sent in enumerate(sents):
+          sys.stderr.write(". %s " % i)
+          sys.stderr.flush()
+          d=p.parse(sent)
+       sys.exit()
+
+    if MODE=="train":
+       fout = file(TRAIN_OUT_FILE, "w")
+       nactions = 4
+       trainer = MLTrainerActionDecider(ml.MultitronParameters(nactions), ArcEagerParsingOracle(pop_when_can=FLAGS.lazypop), featExt)
+       p = ArcEagerParser( trainer)
+       import random
+       random.seed("seed")
+       #random.shuffle(sents)
+       total = len(sents)
+       for x in xrange(FLAGS.epoch): # epoch
+          logging.info("iter %s/%s",x, FLAGS.epoch)
+          for i,sent in enumerate(sents):
+             if i % 500 == 0: logging.info("step %s/%s ...", i, total)
+             try:
+                d=p.parse(sent)
+             except IndexError,e:
+                logging.info("prob in sent: %s",i)
+                logging.info("\n".join(["%s %s %s %s" % (t['id'],t['form'],t['tag'],t['parent']) for t in sent]))
+                raise e
+       trainer.save(fout)
   
-if opts.SCORES_OUT:
-   scores_out.close()
+def main(argv):
+    print('Running under Python {0[0]}.{0[1]}.{0[2]}'.format(sys.version_info), file=sys.stderr)
+    if FLAGS.train: train()
+    if FLAGS.test: test()
 
-if opts.eval:
-   print "accuracy:", good/(good+bad)
-   print "complete:", complete/len(sents)
-   preds = set([(i,p,c) for i,p,c in preds if p != -1])
-   print "recall:", len(preds.intersection(reals))/float(len(reals))
-   print "precision:", len(preds.intersection(reals))/float(len(preds))
-   print "assigned:",len(preds)/float(len(reals))
-   
+if __name__ == '__main__':
+    # FLAGS([__file__, '--verbosity', '1'])
+    app.run(main)

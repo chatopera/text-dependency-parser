@@ -4,7 +4,6 @@
 *.pyc
 jmeter.log
 __pycache__
-tmp/
 node_modules/
 sftp-config.json
 .DS_Store

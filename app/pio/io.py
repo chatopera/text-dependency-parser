@@ -16,30 +16,50 @@
 """
 Author: Yoav Goldberg
 """
+from __future__ import print_function
+from __future__ import division
+
+import os
 import sys
+curdir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(curdir)
+
+if sys.version_info[0] < 3:
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
+    # raise "Must be using Python 3"
+
+from absl import app
+from absl import flags
+from absl import logging
+
 import yutils
 from collections import defaultdict
-
-sys.path.append("..")
 import common
 
 def to_tok(line):
-   if line[4]=="_": line[4]=line[3]
-   return {"parent": int(line[-4]),
-           "prel"  : line[-3],
+    # if line[4]=="_": line[4]=line[3]
+    return {"parent": int(line[6]),
+           "prel"  : line[7],
            "form"  : line[1], 
            "lem"  : line[2], 
            "id"    : int(line[0]), 
            "tag"   : line[4],
            "ctag"   : line[3],
-           "morph" : line[-5].split("|"),
-           "extra" :  line[-1],
+           "morph" : line[5].split("|"),
+           "extra" :  line[9],
            }
 
 def conll_to_sents(fh,ignore_errs=True):
    for sent in yutils.tokenize_blanks(fh):
       if ignore_errs and sent[0][0][0]=="@": continue
-      yield [to_tok(l) for l in sent]
+      lines = []
+      for x in sent:
+        if x[0].strip().startswith("#"): continue
+        if x[6].strip() == "_" or x[7].strip() == "_": continue
+        if len(x) != 10: continue
+        lines.append(x)
+      if len(lines) > 0: yield [to_tok(l) for l in lines]
 
 def ann_conll_to_sents(fh):
    sent=[]
