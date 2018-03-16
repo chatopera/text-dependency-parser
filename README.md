@@ -17,16 +17,35 @@ http://www.hankcs.com/nlp/corpus/chinese-treebank.html
 
 ## Run
 
-Train model.
+### Install deps
+
+依赖: **py2.7**
+
+```
+pip install -r requirements.txt
+```
+
+### Train model
 
 ```
 admin/train.sh
 ```
 
-Test model.
+### Test model
 
 ```
 admin/test.sh
+```
+
+results:
+
+```
+I0316 18:49:02.500869 140736085984064 eager.py:140] test result: sgood[15.0], sbad[5.0]
+I0316 18:49:02.501015 140736085984064 eager.py:144] accuracy: 0.814004554327
+I0316 18:49:02.501211 140736085984064 eager.py:145] complete: 0.493981704381
+I0316 18:49:02.665308 140736085984064 eager.py:147] recall: 0.797656997131
+I0316 18:49:02.670641 140736085984064 eager.py:148] precision: 0.814004554327
+I0316 18:49:02.670816 140736085984064 eager.py:149] assigned: 0.979917118266
 ```
 
 # Give credits to
