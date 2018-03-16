@@ -11,7 +11,7 @@ baseDir=$(cd `dirname "$0"`;pwd)
 [ -z "${BASH_SOURCE[0]}" -o "${BASH_SOURCE[0]}" = "$0" ] || return
 cd $baseDir/../app
 python eager.py \
-    --verbosity=1 \
+    --verbosity=0 \
     --test=True \
     --model=$baseDir/../tmp/eager.model \
     --test_data=$baseDir/../data/UD_English-EWT/en-ud-test.conllu \
