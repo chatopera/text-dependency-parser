@@ -1,0 +1,15 @@
+
+- to build using cython (use if you changed the .pyx file, or do not have the .c file for some reason):
+
+   python setup.py build_ext --inplace
+
+ (installing cython should be as easy as `easy_install cython`)
+
+- if you don't care to install cython, you can build the .c file directly:
+   rm -rf build
+   python setupc.py install
+
+ then copy the platform specific ml.so file from the build/*/ml.so directory to the ml/ directory.
+
+
+

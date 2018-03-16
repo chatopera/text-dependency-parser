@@ -1,0 +1,43 @@
+Transition Based Dependency Parsers
+
+These are implementations of the (unlabeled) arc-eager and arc-standard dependency parsing algorithms.
+These parsers are very fast and are reasonably accurate.
+In particular, the arc-standard parser with the features described in [1] (the default feature set) can achieve very competitive accuracies.
+
+The input file for both training and parsing should be in CoNLL format (see conll.example).
+Columns 8,9,10 are always ignored (but must be present).
+When parsing new text, you can put whatever you want in column 7, the parser will overwrite it (it uses this column to report accuracy scores)
+
+Compiling:
+==========
+Speed is achieved using a c/cython extension module. 
+This needs to be compiled using either cython or a c compiler.
+See instructions in ml/README
+
+Training the parsers:
+=====================
+
+   ./eager.py -o model_file [options] conll_input_file
+
+   or
+
+   ./standard.py -o model_file [options] conll_input_file
+
+   (use -f instead of -o to create feature vector files for training with an external classifier.  If you don't know what it means,
+    just ignore this option.  The model file format is the same as Megam's.)
+
+Parsing new text with the trained model:
+========================================
+
+   ./eager.py -m model_file [options] conll_file_to_parse > output
+
+   or 
+
+   ./standard.py -m model_file [options] conll_file_to_parse > output
+
+
+References:
+~~~~~~~~~~~
+[1] Liang Huang, Wenbin Jiang and Qun Liu. 2009.
+    Bilingually-Constrained (Monolingual) Shift-Reduce Parsing.
+
