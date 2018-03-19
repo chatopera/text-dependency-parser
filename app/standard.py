@@ -27,165 +27,132 @@ alternatively, producing feature vectors for training an extarnal classifier:
 testing:
    standard.py -m model conll_test_file
 """
+
+from __future__ import print_function
+from __future__ import division
+
+import os
+import sys
+curdir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(curdir)
+
+if sys.version_info[0] < 3:
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
+    # raise "Must be using Python 3"
+
+from absl import app
+from absl import flags
+from absl import logging
+
+from ml import ml
+from pio import io
+from transitionparser import *
+from features import extractors
+
+FLAGS = flags.FLAGS
+'''
+General
+'''
+
+flags.DEFINE_boolean('ignore_punc', False, 'Ignore Punct File.')  # nopep8
+flags.DEFINE_boolean('only_projective', False, 'Only Projective.')  # nopep8
+flags.DEFINE_boolean('lazypop', True, 'Lazy pop.')   # nopep8
+flags.DEFINE_boolean('unlex', False, 'unlex')   # nopep8
+flags.DEFINE_string('feature_extarctor', 'standard.wenbin', 'Feature Extarctor')  # nopep8
+flags.DEFINE_string('model', os.path.join(curdir, os.path.pardir, "tmp", "standard.model"), 'Transition Parser Model.')  # nopep8
+
+'''
+Train
+'''
+flags.DEFINE_boolean('train', False, 'Train model with train data')  # nopep8
+flags.DEFINE_integer('epoch', 1, 'Train Epoch.')  # nopep8
+flags.DEFINE_string('train_data', os.path.join(curdir, os.path.pardir, "data", "conll.example"), 'Train Data')  # nopep8
+flags.DEFINE_string('externaltrainfile', None, 'External Train File.')  # nopep8
+# flags.DEFINE_string('modelfile', 'data/weights', 'Model File.')
+
+'''
+Test
+'''
+flags.DEFINE_boolean('test', False, 'Evalutate with test data')  # nopep8
+flags.DEFINE_string('test_data', os.path.join(curdir, os.path.pardir, "data", "conll.example"), 'Test data.')  # nopep8
+flags.DEFINE_string('test_results', os.path.join(curdir, os.path.pardir, "tmp", "standard.test.results"), 'Save scores into disk.')  # nopep8
+
+
 from optparse import OptionParser
 from features import extractors
 
-parser = OptionParser()
-parser.add_option("-o", "--trainfile", dest="trainfile", default=None)
-parser.add_option(
-    "-f",
-    "--externaltrainfile",
-    dest="externaltrainfile",
-    default=None)
-parser.add_option("-m", "--model", dest="modelfile", default="data/weights")
-parser.add_option(
-    "-e",
-    "--eval",
-    dest="eval",
-    action="store_true",
-    default=False)
-parser.add_option(
-    "-i",
-    "--ignorepunc",
-    dest="ignore_punc",
-    action="store_true",
-    default=False)
-parser.add_option(
-    "-p",
-    "--onlyprojective",
-    dest="only_proj",
-    action="store_true",
-    default=False)
-parser.add_option(
-    "-s",
-    "--scores_out",
-    dest="SCORES_OUT",
-    action="store_true",
-    default=False)
-parser.add_option(
-    "-r",
-    "--reverse",
-    dest="REVERSE",
-    action="store_true",
-    default=False)
-parser.add_option(
-    "--features",
-    dest="feature_extarctor",
-    default="standard.wenbin")
-
-opts, args = parser.parse_args()
-
-if opts.trainfile:
-    MODE = 'train'
-    TRAIN_OUT_FILE = opts.trainfile
-elif opts.externaltrainfile:
-    MODE = 'write'
-    TRAIN_OUT_FILE = opts.externaltrainfile
-
-else:
-    MODE = 'test'
-
-if opts.SCORES_OUT:
-    scores_out = file("standard.scores", "w")
-
-DATA_FILE = args[0]
-
-########
-
 import sys
 import ml
-
+import random
 from pio import io
 from transitionparser import *
 
-featExt = extractors.get(opts.feature_extarctor)
 
-sents = list(io.conll_to_sents(file(DATA_FILE)))  # [:20]
+def transform_conll_sents(conll_file_path):
+    '''
+    Transform CoNLL data as feeding
+    '''
+    sents = list(io.conll_to_sents(file(conll_file_path)))
 
-if opts.REVERSE:
-    sents = [list(reversed(sent)) for sent in sents]
+    if FLAGS.only_projective:
+        import isprojective
+        sents = [s for s in sents if isprojective.is_projective(s)]
 
-if opts.only_proj:
-    import isprojective
-    sents = [s for s in sents if isprojective.is_projective(s)]
-if MODE == "write":
-    fout = file(TRAIN_OUT_FILE, "w")
-    trainer = LoggingActionDecider(ArcStandardParsingOracle(), featExt, fout)
-    p = ArcStandardParser2(trainer)
-    for i, sent in enumerate(sents):
-        sys.stderr.write(".")
-        sys.stderr.flush()
-        d = p.parse(sent)
-    sys.exit()
+    if FLAGS.unlex:
+        from shared.lemmatize import EnglishMinimalWordSmoother
+        smoother = EnglishMinimalWordSmoother.from_words_file("1000words")
+        for sent in sents:
+            for tok in sent:
+                tok['oform'] = tok['form']
+                tok['form'] = smoother.get(tok['form'])
 
-if MODE == "train":
-    fout = file(TRAIN_OUT_FILE, "w")
+    return sents
+
+def train():
+    MODE = 'train'
+    featExt = extractors.get(FLAGS.feature_extarctor)
+    sents = transform_conll_sents(FLAGS.train_data)
     trainer = MLTrainerActionDecider(
         ml.MultitronParameters(3),
         ArcStandardParsingOracle(),
         featExt)
     p = ArcStandardParser2(trainer)
-    import random
+    total = len(sents)
     random.seed("seed")
-    random.shuffle(sents)
-    for x in xrange(10):
-        print "iter ", x
+    for x in xrange(FLAGS.epoch):
+        random.shuffle(sents)
+        logging.info("iter %s/%s", x + 1, FLAGS.epoch)
+        logging.info("  shuffle data ...")
         for i, sent in enumerate(sents):
             if i % 500 == 0:
-                print i,
+                logging.info("  step %s/%s ...", i, total)
             try:
                 d = p.parse(sent)
             except Exception as e:
-                print "prob in sent:", i
-                print "\n".join(["%s %s %s %s" % (t['id'], t['form'], t['tag'], t['parent']) for t in sent])
+                logging.info("prob in sent: %s", i)
+                logging.info("\n".join(
+                    ["%s %s %s %s" % (t['id'], t['form'], t['tag'], t['parent']) for t in sent]))
                 raise e
-    trainer.save(fout)
-    sys.exit()
 
-elif MODE == "test":
-    p = ArcStandardParser2(
-        MLActionDecider(
-            ml.MulticlassModel(
-                opts.modelfile,
-                True),
-            featExt))
+    with open(FLAGS.model, "w") as fout:
+        logging.info("save model file to disk [%s] ...", FLAGS.model)
+        trainer.save(fout)
 
-good = 0.0
-bad = 0.0
-complete = 0.0
+def test():
+    pass
 
-for i, sent in enumerate(sents):
-    mistake = False
-    sgood = 0.0
-    sbad = 0.0
-    sys.stderr.write("%s %s %s\n" % ("@@@", i, good / (good + bad + 1)))
-    try:
-        d = p.parse(sent)
-    except MLTrainerWrongActionException:
-        continue
-    if opts.REVERSE:
-        sent = list(reversed(sent))
-    sent = d.annotate(sent)
-    for tok in sent:
-        print tok['id'], tok['form'], "_", tok['tag'], tok['tag'], "_", tok['pparent'], "_ _ _"
-        if opts.ignore_punc and tok['form'][0] in "`',.-;:!?{}":
-            continue
-        if tok['parent'] == tok['pparent']:
-            good += 1
-            sgood += 1
-        else:
-            bad += 1
-            sbad += 1
-            mistake = True
-    print
-    if not mistake:
-        complete += 1
-    if opts.SCORES_OUT:
-        scores_out.write("%s\n" % (sgood / (sgood + sbad)))
 
-if opts.SCORES_OUT:
-    scores_out.close()
+def main(argv):
+    print(
+        'Running under Python {0[0]}.{0[1]}.{0[2]}'.format(
+            sys.version_info),
+        file=sys.stderr)
+    if FLAGS.train:
+        train()
+    if FLAGS.test:
+        test()
 
-if opts.eval:
-    print "accuracy:", good / (good + bad)
-    print "complete:", complete / len(sents)
+if __name__ == '__main__':
+    # FLAGS([__file__, '--verbosity', '1'])
+    app.run(main)

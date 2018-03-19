@@ -14,7 +14,7 @@ baseDir=$(cd `dirname "$0"`;pwd)
 PY=$baseDir/../app/eager.py
 MODEL=$baseDir/../tmp/eager.ewt.model
 TEST_DATA=$baseDir/../data/UD_English-EWT/en-ud-test.conllu
-TEST_RESULT=$baseDir/../tmp/en-ud-test.results
+TEST_RESULT=$baseDir/../tmp/en-ud-test.eager.results
 LOG_VERBOSITY=0 # info
 
 # functions

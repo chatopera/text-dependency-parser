@@ -11,10 +11,10 @@ baseDir=$(cd `dirname "$0"`;pwd)
 #######################
 # variables
 #######################
-PY=$baseDir/../app/eager.py
-MODEL=$baseDir/../tmp/eager.thu.model
-TEST_DATA=$baseDir/../data/evsam05/THU/dev.conllu
-TEST_RESULT=$baseDir/../tmp/en-ud-test.eager.results
+PY=$baseDir/../app/standard.py
+TRAIN_DATA=$baseDir/../data/evsam05/THU/train.conllu
+MODEL=$baseDir/../tmp/standard.thu.model
+EPOCH=10
 LOG_VERBOSITY=0 # info
 
 # functions
@@ -23,4 +23,4 @@ LOG_VERBOSITY=0 # info
 # main 
 [ -z "${BASH_SOURCE[0]}" -o "${BASH_SOURCE[0]}" = "$0" ] || return
 set -x
-test $PY $LOG_VERBOSITY $MODEL $TEST_DATA $TEST_RESULT 
+train $PY $LOG_VERBOSITY $MODEL $TRAIN_DATA $EPOCH 

@@ -11,10 +11,10 @@ baseDir=$(cd `dirname "$0"`;pwd)
 #######################
 # variables
 #######################
-PY=$baseDir/../app/eager.py
-MODEL=$baseDir/../tmp/eager.thu.model
-TEST_DATA=$baseDir/../data/evsam05/THU/dev.conllu
-TEST_RESULT=$baseDir/../tmp/en-ud-test.eager.results
+PY=$baseDir/../app/standard.py
+MODEL=$baseDir/../tmp/standard.ewt.model
+TEST_DATA=$baseDir/../data/UD_English-EWT/en-ud-test.conllu
+TEST_RESULT=$baseDir/../tmp/en-ud-test.standard.results
 LOG_VERBOSITY=0 # info
 
 # functions
