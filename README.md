@@ -48,6 +48,11 @@ https://github.com/UniversalDependencies/UD_Chinese-GSD
 
 https://github.com/UniversalDependencies/UD_English-EWT
 
+
+* 第二届自然语言处理与中文计算会议（NLP&CC 2013）
+
+[清华和哈工大提供的训练集和开发集](./data/evsam05)
+
 查看[其他数据集](https://github.com/Samurais/text-dependency-parser/issues/2)。
 
 ## 执行
@@ -63,13 +68,15 @@ pip install -r requirements.txt
 ### 训练模型
 
 ```
-admin/train.sh
+admin/eager.thu.train.sh # 中文
+admin/eager.ewt.train.sh # 英文
 ```
 
 ### 测试模型
 
 ```
-admin/test.sh
+admin/eager.thu.test.sh # 中文
+admin/eager.ewt.test.sh # 英文
 ```
 
 针对 *UD_Chinese-GSD* 的结果:
