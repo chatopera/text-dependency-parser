@@ -12,3 +12,4 @@ sftp-config.json
 *.iws
 *.idea
 app/ml/build
+admin/localrc
