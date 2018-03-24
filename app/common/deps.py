@@ -15,7 +15,7 @@
 from collections import defaultdict
 
 
-class DependenciesCollection:  # {{{
+class DependenciesCollection:
     def __init__(self):
         self.deps = set()
         self._left_child = {}
@@ -148,4 +148,3 @@ class DependenciesCollection:  # {{{
             return int(tok['id'])
         else:
             return self.left_border(l)
-#}}}
