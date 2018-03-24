@@ -24,7 +24,7 @@ from __future__ import division
 import os
 import sys
 curdir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(curdir)
+sys.path.insert(0, os.path.join(curdir, os.path.pardir))
 
 if sys.version_info[0] < 3:
     reload(sys)
@@ -37,10 +37,11 @@ from absl import logging
 
 from ml import ml
 from pio import io
-from oracles import *
-from deciders import *
-from transitionparser import *
+from transitionparser.oracles import *
+from transitionparser.deciders import *
+from transitionparser.parsers import *
 from features import extractors
+from common.utils import is_projective
 
 FLAGS = flags.FLAGS
 '''
@@ -52,14 +53,14 @@ flags.DEFINE_boolean('only_projective', False, 'Only Projective.')  # nopep8
 flags.DEFINE_boolean('lazypop', True, 'Lazy pop.')   # nopep8
 flags.DEFINE_boolean('unlex', False, 'unlex')   # nopep8
 flags.DEFINE_string('feature_extarctor', 'eager.zhang', 'Feature Extarctor')  # nopep8
-flags.DEFINE_string('model', os.path.join(curdir, os.path.pardir, "tmp", "eager.model"), 'Transition Parser Model.')  # nopep8
+flags.DEFINE_string('model', os.path.join(curdir, os.path.pardir, os.path.pardir, "tmp", "eager.model"), 'Transition Parser Model.')  # nopep8
 
 '''
 Train
 '''
 flags.DEFINE_boolean('train', False, 'Train model with train data')  # nopep8
 flags.DEFINE_integer('epoch', 1, 'Train Epoch.')  # nopep8
-flags.DEFINE_string('train_data', os.path.join(curdir, os.path.pardir, "data", "conll.example"), 'Train Data')  # nopep8
+flags.DEFINE_string('train_data', os.path.join(curdir, os.path.pardir, os.path.pardir, "data", "conll.example"), 'Train Data')  # nopep8
 flags.DEFINE_string('externaltrainfile', None, 'External Train File.')  # nopep8
 # flags.DEFINE_string('modelfile', 'data/weights', 'Model File.')
 
@@ -67,8 +68,8 @@ flags.DEFINE_string('externaltrainfile', None, 'External Train File.')  # nopep8
 Test
 '''
 flags.DEFINE_boolean('test', False, 'Evalutate with test data')  # nopep8
-flags.DEFINE_string('test_data', os.path.join(curdir, os.path.pardir, "data", "conll.example"), 'Test data.')  # nopep8
-flags.DEFINE_string('test_results', os.path.join(curdir, os.path.pardir, "tmp", "eager.test.results"), 'Save scores into disk.')  # nopep8
+flags.DEFINE_string('test_data', os.path.join(curdir, os.path.pardir, os.path.pardir, "data", "conll.example"), 'Test data.')  # nopep8
+flags.DEFINE_string('test_results', os.path.join(curdir, os.path.pardir, os.path.pardir, "tmp", "eager.test.results"), 'Save scores into disk.')  # nopep8
 
 
 def transform_conll_sents(conll_file_path):
@@ -78,8 +79,7 @@ def transform_conll_sents(conll_file_path):
     sents = list(io.conll_to_sents(file(conll_file_path)))
 
     if FLAGS.only_projective:
-        import isprojective
-        sents = [s for s in sents if isprojective.is_projective(s)]
+        sents = [s for s in sents if is_projective(s)]
 
     if FLAGS.unlex:
         from shared.lemmatize import EnglishMinimalWordSmoother

@@ -11,7 +11,7 @@ baseDir=$(cd `dirname "$0"`;pwd)
 #######################
 # variables
 #######################
-PY=$baseDir/../app/standard.py
+PY=$baseDir/../app/transitionparser/standard.py
 MODEL=$baseDir/../tmp/eager.thu.model
 TEST_DATA=$baseDir/../data/evsam05/THU/dev.conllu
 TEST_RESULT=$baseDir/../tmp/en-ud-test.standard.results

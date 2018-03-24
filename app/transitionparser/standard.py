@@ -34,7 +34,7 @@ from __future__ import division
 import os
 import sys
 curdir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(curdir)
+sys.path.insert(0, os.path.join(curdir, os.path.pardir))
 
 if sys.version_info[0] < 3:
     reload(sys)
@@ -47,8 +47,11 @@ from absl import logging
 
 from ml import ml
 from pio import io
-from transitionparser import *
+from transitionparser.oracles import *
+from transitionparser.deciders import *
+from transitionparser.parsers import *
 from features import extractors
+from common.utils import is_projective
 
 FLAGS = flags.FLAGS
 '''
@@ -95,8 +98,7 @@ def transform_conll_sents(conll_file_path):
     sents = list(io.conll_to_sents(file(conll_file_path)))
 
     if FLAGS.only_projective:
-        import isprojective
-        sents = [s for s in sents if isprojective.is_projective(s)]
+        sents = [s for s in sents if is_projective(s)]
 
     if FLAGS.unlex:
         from shared.lemmatize import EnglishMinimalWordSmoother

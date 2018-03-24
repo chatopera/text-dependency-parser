@@ -16,6 +16,18 @@
 Transition based parsing (both arc-standard and arc-eager).
 Easily extended to support other variants.
 """
+from __future__ import print_function
+from __future__ import division
+
+import os
+import sys
+curdir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(curdir, os.path.pardir))
+
+if sys.version_info[0] < 3:
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
+    # raise "Must be using Python 3"
 
 from absl import logging
 from collections import defaultdict

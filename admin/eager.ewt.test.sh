@@ -11,7 +11,7 @@ baseDir=$(cd `dirname "$0"`;pwd)
 #######################
 # variables
 #######################
-PY=$baseDir/../app/eager.py
+PY=$baseDir/../app/transitionparser/eager.py
 MODEL=$baseDir/../tmp/eager.ewt.model
 TEST_DATA=$baseDir/../data/UD_English-EWT/en-ud-test.conllu
 TEST_RESULT=$baseDir/../tmp/en-ud-test.eager.results

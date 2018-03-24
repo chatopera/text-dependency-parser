@@ -22,7 +22,7 @@ from __future__ import division
 import os
 import sys
 curdir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(curdir)
+sys.path.append(os.path.join(curdir, os.path.pardir))
 
 if sys.version_info[0] < 3:
     reload(sys)
@@ -39,7 +39,7 @@ from ml import ml
 
 from common import *
 from common.exceptions import *
-from configurations import *
+from transitionparser.configurations import *
 
 class TransitionBasedParser:
     """

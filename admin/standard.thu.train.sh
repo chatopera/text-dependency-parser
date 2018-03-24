@@ -11,7 +11,7 @@ baseDir=$(cd `dirname "$0"`;pwd)
 #######################
 # variables
 #######################
-PY=$baseDir/../app/standard.py
+PY=$baseDir/../app/transitionparser/standard.py
 TRAIN_DATA=$baseDir/../data/evsam05/THU/train.conllu
 MODEL=$baseDir/../tmp/standard.thu.model
 EPOCH=10

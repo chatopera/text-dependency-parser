@@ -18,9 +18,23 @@ driver for ArcEager parser.
 
 Author: Yoav Goldberg (yoav.goldberg@gmail.com)
 """
+from __future__ import print_function
+from __future__ import division
+
+import os
+import sys
+curdir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(curdir, os.path.pardir))
+
+if sys.version_info[0] < 3:
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
+    # raise "Must be using Python 3"
+
 from absl import logging
 from common import *
 from common.deps import DependenciesCollection
+from common.exceptions import *
 
 # learners
 class Configuration:  # {{{
