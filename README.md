@@ -75,22 +75,23 @@ pip install -r requirements.txt
 
 ## 训练模型
 
-```
-admin/eager.thu.train.sh # 中文
-admin/eager.ewt.train.sh # 英文
-
-admin/standard.thu.train.sh # 中文
-admin/standard.ewt.train.sh # 英文
-```
-
-## 测试模型
+* Nivre's Arc-Standard
 
 ```
-admin/eager.thu.test.sh # 中文
-admin/eager.ewt.test.sh # 英文
+admin/standard.thu.train.sh # 训练中文模型
+admin/standard.thu.test.sh  # 测试中文模型
 
-admin/standard.thu.test.sh # 中文
-admin/standard.ewt.test.sh # 英文
+admin/standard.ewt.train.sh # 训练英文模型
+admin/standard.ewt.test.sh  # 测试英文模型
+```
+
+* Nivre's Arc-Eager
+```
+admin/eager.thu.train.sh # 训练中文模型
+admin/eager.thu.test.sh  # 测试中文模型
+
+admin/eager.ewt.train.sh # 训练英文模型
+admin/eager.ewt.test.sh  # 测试英文模型
 ```
 
 针对 *UD_Chinese-GSD* 的结果:

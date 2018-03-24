@@ -14,7 +14,7 @@ baseDir=$(cd `dirname "$0"`;pwd)
 PY=$baseDir/../app/transitionparser/standard.py
 TRAIN_DATA=$baseDir/../data/UD_English-EWT/en-ud-train.conllu
 MODEL=$baseDir/../tmp/standard.ewt.model
-EPOCH=1
+EPOCH=200
 LOG_VERBOSITY=0 # info
 
 # functions

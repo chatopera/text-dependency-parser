@@ -14,7 +14,7 @@ baseDir=$(cd `dirname "$0"`;pwd)
 PY=$baseDir/../app/transitionparser/eager.py
 TRAIN_DATA=$baseDir/../data/evsam05/THU/train.conllu
 MODEL=$baseDir/../tmp/eager.thu.model
-EPOCH=10
+EPOCH=200
 LOG_VERBOSITY=0 # info
 
 # functions
