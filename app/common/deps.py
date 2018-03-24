@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this software.  If not, see <http://www.gnu.org/licenses/>.
 from collections import defaultdict
-
+import sys
 
 class DependenciesCollection:
     def __init__(self):
@@ -83,7 +83,7 @@ class DependenciesCollection:
             try:
                 tok['pparent'] = self._parents[tok['id']]['id']
             except KeyError:
-                sys.stderr.write("defaulting to root-parent")
+                sys.stderr.write("defaulting to root-parent\n")
                 tok['pparent'] = 0
         return sent
 

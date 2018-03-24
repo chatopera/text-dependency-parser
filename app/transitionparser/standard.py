@@ -91,29 +91,10 @@ import random
 from pio import io
 from transitionparser.parsers import *
 
-def transform_conll_sents(conll_file_path):
-    '''
-    Transform CoNLL data as feeding
-    '''
-    sents = list(io.conll_to_sents(file(conll_file_path)))
-
-    if FLAGS.only_projective:
-        sents = [s for s in sents if is_projective(s)]
-
-    if FLAGS.unlex:
-        from shared.lemmatize import EnglishMinimalWordSmoother
-        smoother = EnglishMinimalWordSmoother.from_words_file("1000words")
-        for sent in sents:
-            for tok in sent:
-                tok['oform'] = tok['form']
-                tok['form'] = smoother.get(tok['form'])
-
-    return sents
-
 def train():
     MODE = 'train'
     featExt = extractors.get(FLAGS.feature_extarctor)
-    sents = transform_conll_sents(FLAGS.train_data)
+    sents = io.transform_conll_sents(FLAGS.train_data, FLAGS.only_projective, FLAGS.unlex)
     trainer = MLTrainerActionDecider(
         ml.MultitronParameters(3),
         ArcStandardParsingOracle(),
@@ -141,8 +122,42 @@ def train():
         trainer.save(fout)
 
 def test():
-    pass
+    featExt = extractors.get(FLAGS.feature_extarctor)
+    sents = io.transform_conll_sents(FLAGS.test_data, FLAGS.only_projective, FLAGS.unlex)
+    p = ArcStandardParser2(
+                           MLActionDecider(ml.MulticlassModel(FLAGS.model, True),
+                                           featExt))
+    good = 0.0
+    bad  = 0.0
+    complete=0.0
 
+    with open(FLAGS.test_results, "w") as fout:
+        for i,sent in enumerate(sents):
+            mistake=False
+            sgood=0.0
+            sbad=0.0
+            fout.write("%s %s %s\n" % ("@@@",i,good/(good+bad+1)))
+            try:
+                d=p.parse(sent)
+            except MLTrainerWrongActionException:
+                continue
+
+            sent = d.annotate(sent)
+            for tok in sent:
+                # print tok['id'], tok['form'], "_",tok['tag'],tok['tag'],"_",tok['pparent'],"_ _ _"
+                if FLAGS.ignore_punc and tok['form'][0] in "`',.-;:!?{}": continue
+                if tok['parent']==tok['pparent']:
+                    good+=1
+                    sgood+=1
+                else:
+                    bad+=1
+                    sbad+=1
+                    mistake=True
+            if not mistake: complete+=1
+            fout.write("%s\n" % (sgood/(sgood+sbad)))
+
+    print("accuracy:", good/(good+bad))
+    print("complete:", complete/len(sents))
 
 def main(argv):
     print(

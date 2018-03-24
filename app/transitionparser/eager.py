@@ -72,25 +72,6 @@ flags.DEFINE_string('test_data', os.path.join(curdir, os.path.pardir, os.path.pa
 flags.DEFINE_string('test_results', os.path.join(curdir, os.path.pardir, os.path.pardir, "tmp", "eager.test.results"), 'Save scores into disk.')  # nopep8
 
 
-def transform_conll_sents(conll_file_path):
-    '''
-    Transform CoNLL data as feeding
-    '''
-    sents = list(io.conll_to_sents(file(conll_file_path)))
-
-    if FLAGS.only_projective:
-        sents = [s for s in sents if is_projective(s)]
-
-    if FLAGS.unlex:
-        from shared.lemmatize import EnglishMinimalWordSmoother
-        smoother = EnglishMinimalWordSmoother.from_words_file("1000words")
-        for sent in sents:
-            for tok in sent:
-                tok['oform'] = tok['form']
-                tok['form'] = smoother.get(tok['form'])
-
-    return sents
-
 
 def test():
     '''
@@ -111,8 +92,8 @@ def test():
     # main test loop
     reals = set()
     preds = set()
-    with open(FLAGS.test_data, "r") as fin, open(FLAGS.test_results, "w") as fout:
-        sents = transform_conll_sents(FLAGS.test_data)
+    with open(FLAGS.test_results, "w") as fout:
+        sents = io.transform_conll_sents(FLAGS.test_data, FLAGS.only_projective, FLAGS.unlex)
         for i, sent in enumerate(sents):
             sgood = 0.0
             sbad = 0.0
@@ -177,7 +158,7 @@ def train():
         TRAIN_OUT_FILE = FLAGS.externaltrainfile
 
     featExt = extractors.get(FLAGS.feature_extarctor)
-    sents = transform_conll_sents(FLAGS.train_data)
+    sents = io.transform_conll_sents(FLAGS.train_data, FLAGS.only_projective, FLAGS.unlex)
 
     if MODE == "write":
         fout = file(TRAIN_OUT_FILE, "w")

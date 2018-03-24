@@ -173,3 +173,23 @@ def add_parents_annotation(sents, parents_file):
             assert(id == tok['id'])
             tok['cand_parents'] = pars
     return sents
+
+def transform_conll_sents(conll_file_path, only_projective = False, unlex = False):
+    '''
+    Transform CoNLL data as feeding
+    '''
+    sents = list(conll_to_sents(file(conll_file_path)))
+
+    if only_projective:
+        sents = [s for s in sents if is_projective(s)]
+
+    if unlex:
+        from shared.lemmatize import EnglishMinimalWordSmoother
+        smoother = EnglishMinimalWordSmoother.from_words_file("1000words")
+        for sent in sents:
+            for tok in sent:
+                tok['oform'] = tok['form']
+                tok['form'] = smoother.get(tok['form'])
+
+    return sents
+
