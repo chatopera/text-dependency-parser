@@ -17,7 +17,7 @@
 
 * [附录：关系表示](https://github.com/Samurais/text-dependency-parser#%E5%85%B3%E7%B3%BB%E8%A1%A8%E7%A4%BA)
 
-## 数据
+# 数据
 格式说明: [CoNLL-U Format](http://universaldependencies.org/docs/format.html)
 
 在本程序中，至少需要该格式的前10列数据：
@@ -39,7 +39,7 @@
 
 * 本程序中，允许 3，5，6，9，10列为 '\_'，其它列为必须为有效值。
 
-### data 目录下的数据
+## data 目录下的数据
 * 中文数据集: UD_Chinese-GSD
 
 https://github.com/UniversalDependencies/UD_Chinese-GSD
@@ -55,7 +55,7 @@ https://github.com/UniversalDependencies/UD_English-EWT
 
 查看[其他数据集](https://github.com/Samurais/text-dependency-parser/issues/2)。
 
-## 执行
+# 执行
 
 ### 安装
 
@@ -65,14 +65,14 @@ https://github.com/UniversalDependencies/UD_English-EWT
 pip install -r requirements.txt
 ```
 
-### 训练模型
+## 训练模型
 
 ```
 admin/eager.thu.train.sh # 中文
 admin/eager.ewt.train.sh # 英文
 ```
 
-### 测试模型
+## 测试模型
 
 ```
 admin/eager.thu.test.sh # 中文
@@ -89,7 +89,7 @@ I0316 23:19:25.391751 140736085984064 eager.py:158] precision: 0.760666326704
 I0316 23:19:25.391916 140736085984064 eager.py:159] assigned: 0.97952047952
 ```
 
-### 浏览依存关系
+## 浏览依存关系
 
 使用 conllu.js 浏览依存关系：打开[网页](http://samurais.github.io/conllu.js/)，点击"edit"按钮，然后粘贴CoNLL-U 格式内容到编辑器中。比如粘贴下面的内容到[conllu.js](http://samurais.github.io/conllu.js/) 网页中。
 
@@ -125,6 +125,61 @@ I0316 23:19:25.391916 140736085984064 eager.py:159] assigned: 0.97952047952
 得到如下的依存关系树：
 
 <img width="750" alt="screen shot 2018-03-16 at 11 21 25 pm" src="https://user-images.githubusercontent.com/3538629/37528966-e488e9e8-2970-11e8-8ac0-f4dd7b783e99.png">
+
+# 算法
+
+<img width="750" alt="screen shot 2018-03-24 at 11 38 57 am" src="https://user-images.githubusercontent.com/3538629/37860014-59795f7a-2f58-11e8-85fc-854f0160ae79.png">
+
+[详细介绍: Dependency Parsing](https://web.stanford.edu/~jurafsky/slp3/14.pdf)
+
+
+# 代码结构
+
+*app/standard.py*  和 *app/eager.py* 是训练代码，**transition parser**的核心实现在*app/transitionparser.py*中。
+
+## parser
+
+* 父类：TransitionBasedParser
+* 子类：ArcStandardParser2, ArcEagerParser
+
+## configuration
+
+* 父类：Configuration
+* 子类：ArcStandardConfiguration, ArcEagerConfiguration
+
+<img src="https://user-images.githubusercontent.com/3538629/37859794-980085e2-2f54-11e8-9f85-f050213cb2e8.png" width="600">
+
+依赖：ArcEagerConfiguration --> ArcEagerParser, ArcStandardConfiguration --> ArcStandardParser2
+
+
+## oracle
+
+<img src="https://user-images.githubusercontent.com/3538629/37859795-985e457e-2f54-11e8-8a7f-98992b059922.png" width="600">
+
+## decider
+
+<img src="https://user-images.githubusercontent.com/3538629/37859799-9a353592-2f54-11e8-813c-569fdefc7227.png" width="600">
+
+
+## feature extractor
+
+<img src="https://user-images.githubusercontent.com/3538629/37859923-a6cc8a06-2f56-11e8-9efa-f0a0f5252c7c.png" width="600">
+
+# 训练
+
+## standard
+
+<img src="https://user-images.githubusercontent.com/3538629/37859987-b8e51dc4-2f57-11e8-84df-c806359c9e90.png" width="600">
+
+代码：
+<img width="600" alt="screen shot 2018-03-24 at 11 31 31 am" src="https://user-images.githubusercontent.com/3538629/37859960-3f28b1c6-2f57-11e8-809b-c1a0742f731b.png">
+
+## eager
+
+<img src="https://user-images.githubusercontent.com/3538629/37859988-b94589d4-2f57-11e8-985b-8790b51a3b95.png" width="600">
+
+代码：
+<img width="600" alt="screen shot 2018-03-24 at 11 32 15 am" src="https://user-images.githubusercontent.com/3538629/37859961-3f9f85bc-2f57-11e8-9099-a0e7e7e2853e.png">
 
 # 更多内容
 

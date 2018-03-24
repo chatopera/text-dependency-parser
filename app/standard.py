@@ -88,7 +88,6 @@ import random
 from pio import io
 from transitionparser import *
 
-
 def transform_conll_sents(conll_file_path):
     '''
     Transform CoNLL data as feeding

@@ -39,6 +39,7 @@ from deps import DependenciesCollection
 from ml import ml
 
 from features.extractors import *
+from exceptions import *
 from common import *
 
 # misc / pretty print / temp junk
@@ -195,10 +196,6 @@ class LoggingActionDecider:  # {{{
 
     def save(self, param=None):
         self.out.close()
-
-
-class MLTrainerWrongActionException(Exception):
-    pass
 
 
 class MLTrainerActionDecider:  # {{{
@@ -569,47 +566,6 @@ class ArcEagerParsingOracle:  # {{{
         assert(False)
 
 # learners
-
-class OldArcStandardParser:  # {{{
-    """
-    old code, before refactoring (might be easier to read by starting from here, before decoupling to parser and configuration..)
-    """
-
-    def __init__(self, decider):
-        self.d = decider
-        pass
-
-    def decide(self, stack, deps, sent, i):
-        action = self.d.next_action(stack, deps, sent, i)
-        return action
-
-    def parse(self, sent):
-        stack = []
-        sent = [ROOT] + sent
-        deps = DependenciesCollection()
-        i = 0
-        while (sent[i:]) or stack[1:]:
-            next_action = self.decide(stack, deps, sent, i)
-            if next_action == SHIFT:
-                stack.append(sent[i])
-                i += 1
-            elif next_action == REDUCE_R:
-                tokt = stack.pop()  # tok_t
-                tokt1 = stack.pop()  # tok_t-1
-                deps.add(tokt1, tokt)
-                stack.append(tokt1)
-            elif next_action == REDUCE_L:
-                tokt = stack.pop()  # tok_t
-                tokt1 = stack.pop()  # tok_t-1
-                deps.add(tokt, tokt1)
-                stack.append(tokt)
-            else:
-                raise "unknown action", next_action
-        return deps
-
-class IllegalActionException(Exception):
-    pass
-
 class Configuration:  # {{{
 
     def __init__(self, sent):
@@ -642,9 +598,11 @@ class Configuration:  # {{{
     def score(self, action): pass  # @TODO
 
     def is_in_finish_state(self):
+        logging.debug("is_in_finish_state i: %s, sent len: %s", self.i, len(self.sent))
         return len(self.stack) == 1 and not self.sent[self.i:]
 
     def do_action(self, action):
+        logging.debug("do action: %s| i: %s | stack: %s", action, self.i, self.stack)
         return self.actions_map()[action]()
 
     def newAfter(self, action):
@@ -663,7 +621,10 @@ class ArcStandardConfiguration(Configuration):  # {{{
             REDUCE_L: self.do_reduceL}
 
     def do_shift(self):
+        logging.debug("ArcStandardConfiguration do_shift")
+        
         if not (self.sent[self.i:]):
+            logging.debug("ArcStandardConfiguration raising error ")
             raise IllegalActionException()
         self.actions.append(SHIFT)
         self._features = []
@@ -705,124 +666,6 @@ class ArcStandardConfiguration(Configuration):  # {{{
             res.append(REDUCE_R)
         return res
 
-
-class Old_ArcEagerConfiguration(Configuration):  # {{{
-    """
-    Nivre's ArcEager parsing algorithm
-    with slightly different action names:
-
-       Nivre's        ThisCode
-       ========================
-       SHIFT          SHIFT
-       ARC_L          REDUCE_L
-       ARC_R          REDUCE_R
-       REDUCE         POP
-
-    """
-
-    def __init__(self, sent):
-        Configuration.__init__(sent)
-
-    def is_in_finish_state(self):
-        return not self.sent[self.i:]
-
-    def actions_map(self):
-        return {
-            SHIFT: self.do_shift,
-            REDUCE_R: self.do_reduceR,
-            REDUCE_L: self.do_reduceL,
-            POP: self.do_pop}
-
-    def do_shift(self):
-        logging.debug("do_shift")
-        if not (self.sent[self.i:]):
-            raise IllegalActionException()
-        self.actions.append(SHIFT)
-        self._features = []
-        self.stack.append(self.sent[self.i])
-        self.i += 1
-
-    def do_reduceR(self):
-        logging.debug("do_reduceR") 
-        if len(self.stack) < 1:
-            raise IllegalActionException()
-        if len(self.sent) <= self.i:
-            raise IllegalActionException()
-        self.actions.append(REDUCE_R)
-        self._features = []
-        stack = self.stack
-        deps = self.deps
-        sent = self.sent
-
-        # attach the tokens, keeping having both on the stack
-        parent = stack[-1]
-        child = sent[self.i]
-        if deps.has_parent(child):
-            raise IllegalActionException()
-        deps.add(parent, child)
-        self.stack.append(child)
-        self.i += 1
-
-    def do_reduceL(self):
-        logging.debug("do_reduceL")
-        if len(self.stack) < 1:
-            raise IllegalActionException()
-        if len(self.sent) <= self.i:
-            raise IllegalActionException()
-        self.actions.append(REDUCE_L)
-        self._features = []
-        stack = self.stack
-        deps = self.deps
-        sent = self.sent
-
-        # add top-of-stack as child of sent, pop stack
-        child = stack[-1]
-        parent = sent[self.i]
-        if deps.has_parent(child):
-            raise IllegalActionException()
-        stack.pop()
-        deps.add(parent, child)
-
-    def do_pop(self):
-        stack = self.stack
-
-        if len(stack) == 0:
-            raise IllegalActionException()
-        # also illegal to pop when the item to be popped does not have a
-        # parent. (can this happen? yes, right after a shift..)
-        if (not self.deps.has_parent(stack[-1])):
-            raise IllegalActionException()
-
-        self.actions.append(POP)
-        self._features = []
-
-        stack.pop()
-
-    # def valid_actions(self):
-    def ABC(self):
-        res = [SHIFT, REDUCE_R, REDUCE_L, POP]
-
-        if not (self.sent[self.i:]):
-            res.remove(SHIFT)
-
-        if len(stack) == 0:
-            res.remove(POP)
-        elif not self.deps.has_parent(stack[-1]):
-            res.remove(POP)
-
-        if len(self.stack) < 1:
-            res.remove(REDUCE_L)
-            res.remove(REDUCE_R)
-        elif len(self.sent) <= self.i:
-            res.remove(REDUCE_L)
-            res.remove(REDUCE_R)
-        else:
-            if self.deps.has_parent(self.stack[-1]):
-                res.remove(REDUCE_L)
-            if self.deps.has_parent(self.sent[self.i]):
-                res.remove(REDUCE_R)
-
-        return res
 
 class ArcEagerConfiguration(Configuration):  # {{{
     """
@@ -958,16 +801,23 @@ class TransitionBasedParser:
         return actions
 
     def parse(self, sent):
+        logging.debug("parse: %s", sent)
         sent = [ROOT] + sent
         conf = self.Configuration(sent)
+        logging.debug("parse: resolve conf")
         while not conf.is_in_finish_state():
+            logging.debug("parse: not finish")
             next_actions = self.decide(conf)
+            logging.debug("parse: next_actions")
             for act in next_actions:
                 try:
+                    logging.debug("parse: next_actions 1")
                     conf.do_action(act)
                     break
-                except IllegalActionException:
+                except IllegalActionException, e:
+                    logging.debug("parse: next_actions 2 %s", e)
                     pass
+        logging.debug("parse: finish")
         return conf.deps  # ,conf.chunks
 
 class ArcStandardParser2(TransitionBasedParser):

@@ -1681,6 +1681,7 @@ __EXTRACTORS__['eager.malt.eng'] = EagerMaltEnglishFeatureExtractor(
     allpairs=True)
 
 __EXTRACTORS__['standard.wenbin'] = WenbinFeatureExtractor()  # Good one
+__EXTRACTORS__['standard.wenbinplus'] = WenbinFeatureExtractor_plus()  # Good one
 __EXTRACTORS__['standard.deg2'] = Degree2FeatureExtractor()
 __EXTRACTORS__['standard.unlex.wb'] = UnlexWenbinPlusFeatureExtractor()
 __EXTRACTORS__['standard.unlex'] = UnlexFeatureExtractor()

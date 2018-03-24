@@ -12,10 +12,12 @@ baseDir=$(cd `dirname "$0"`;pwd)
 # variables
 #######################
 PY=$baseDir/../app/standard.py
-TRAIN_DATA=$baseDir/../data/UD_English-EWT/en-ud-train.conllu
-MODEL=$baseDir/../tmp/standard.ewt.model
-EPOCH=10
-LOG_VERBOSITY=0 # info
+TRAIN_DATA=$baseDir/../data/conll.example
+# TRAIN_DATA=$baseDir/../data/UD_English-EWT/en-ud-train.conllu
+# MODEL=$baseDir/../tmp/standard.ewt.model
+MODEL=$baseDir/../tmp/standard.example.model
+EPOCH=1
+LOG_VERBOSITY=1 # info
 
 # functions
 
