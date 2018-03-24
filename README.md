@@ -55,6 +55,14 @@ https://github.com/UniversalDependencies/UD_English-EWT
 
 查看[其他数据集](https://github.com/Samurais/text-dependency-parser/issues/2)。
 
+# 算法
+
+<img width="750" alt="screen shot 2018-03-24 at 11 38 57 am" src="https://user-images.githubusercontent.com/3538629/37860014-59795f7a-2f58-11e8-85fc-854f0160ae79.png">
+
+[详细介绍: Dependency Parsing](https://web.stanford.edu/~jurafsky/slp3/14.pdf)
+
+在具体更新句子的依存树的时候，有两个思路：standard（从底到顶） 和 eager（从上到下）。
+
 # 执行
 
 ### 安装
@@ -70,6 +78,9 @@ pip install -r requirements.txt
 ```
 admin/eager.thu.train.sh # 中文
 admin/eager.ewt.train.sh # 英文
+
+admin/standard.thu.train.sh # 中文
+admin/standard.ewt.train.sh # 英文
 ```
 
 ## 测试模型
@@ -77,6 +88,9 @@ admin/eager.ewt.train.sh # 英文
 ```
 admin/eager.thu.test.sh # 中文
 admin/eager.ewt.test.sh # 英文
+
+admin/standard.thu.test.sh # 中文
+admin/standard.ewt.test.sh # 英文
 ```
 
 针对 *UD_Chinese-GSD* 的结果:
@@ -125,12 +139,6 @@ I0316 23:19:25.391916 140736085984064 eager.py:159] assigned: 0.97952047952
 得到如下的依存关系树：
 
 <img width="750" alt="screen shot 2018-03-16 at 11 21 25 pm" src="https://user-images.githubusercontent.com/3538629/37528966-e488e9e8-2970-11e8-8ac0-f4dd7b783e99.png">
-
-# 算法
-
-<img width="750" alt="screen shot 2018-03-24 at 11 38 57 am" src="https://user-images.githubusercontent.com/3538629/37860014-59795f7a-2f58-11e8-85fc-854f0160ae79.png">
-
-[详细介绍: Dependency Parsing](https://web.stanford.edu/~jurafsky/slp3/14.pdf)
 
 
 # 代码结构
