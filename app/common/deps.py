@@ -39,7 +39,9 @@ class DependenciesCollection:
         if (not rc) or child['id'] > rc['id']:
             self._right_child[parent['id']] = child
 
-    #{{{ remove
+    def __len__(self):
+        return len(self.deps)
+
     def remove(self, parent, child):
         pid = parent['id']
         cid = child['id']
@@ -75,7 +77,6 @@ class DependenciesCollection:
 
     def remove_parent(self, child):
         self.remove(self.parent(child), child)
-    #}}}
 
     def annotate(self, sent):
         for tok in sent:

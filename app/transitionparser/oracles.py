@@ -79,7 +79,7 @@ class ArcStandardParsingOracle:  # {{{
                 pass
         # else
         if len(sent) <= i:
-            pass
+            return REDUCE_L
         return SHIFT
 
 class ArcEagerParsingOracle:  # {{{

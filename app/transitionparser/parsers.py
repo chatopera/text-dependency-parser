@@ -67,14 +67,14 @@ class TransitionBasedParser:
         while not conf.is_in_finish_state():
             logging.debug("parse: not finish")
             next_actions = self.decide(conf)
-            logging.debug("parse: next_actions")
             for act in next_actions:
                 try:
-                    logging.debug("parse: next_actions 1")
+                    logging.debug("parse: next_actions [%s]", act)
                     conf.do_action(act)
+                    logging.debug("parse: stack len(%s), deps(%s), buffer len(%s)", len(conf.stack), len(conf.deps), (len(conf.sent) - conf.i))
                     break
                 except IllegalActionException, e:
-                    logging.debug("parse: next_actions 2 %s", e)
+                    logging.debug("parse: next_actions error - %s", e)
                     pass
         logging.debug("parse: finish")
         return conf.deps  # ,conf.chunks

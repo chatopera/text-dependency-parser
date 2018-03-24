@@ -103,7 +103,9 @@ class ArcStandardConfiguration(Configuration):  # {{{
         self.i += 1
 
     def do_reduceR(self):
+        logging.debug("ArcStandardConfiguration do_reduceR")
         if len(self.stack) < 2:
+            print("ArcStandardConfiguration do_reduceR error.")
             raise IllegalActionException()
         self.actions.append(REDUCE_R)
         self._features = []
@@ -116,7 +118,9 @@ class ArcStandardConfiguration(Configuration):  # {{{
         stack.append(tokt1)
 
     def do_reduceL(self):
+        logging.debug("ArcStandardConfiguration do_reduceL")
         if len(self.stack) < 2:
+            print("ArcStandardConfiguration do_reduceL error.")
             raise IllegalActionException()
         self.actions.append(REDUCE_L)
         self._features = []

@@ -89,7 +89,7 @@ import sys
 import ml
 import random
 from pio import io
-from transitionparser import *
+from transitionparser.parsers import *
 
 def transform_conll_sents(conll_file_path):
     '''
@@ -120,7 +120,7 @@ def train():
         featExt)
     p = ArcStandardParser2(trainer)
     total = len(sents)
-    random.seed("seed")
+    # random.seed("seed")
     for x in xrange(FLAGS.epoch):
         random.shuffle(sents)
         logging.info("iter %s/%s", x + 1, FLAGS.epoch)

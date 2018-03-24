@@ -5,19 +5,17 @@
 
 # constants
 baseDir=$(cd `dirname "$0"`;pwd)
-. $baseDir/util.sh
+. $baseDir/../admin/util.sh
 
 
 #######################
 # variables
 #######################
 PY=$baseDir/../app/transitionparser/standard.py
-# TRAIN_DATA=$baseDir/../data/conll.example
-TRAIN_DATA=$baseDir/../data/UD_English-EWT/en-ud-train.conllu
-MODEL=$baseDir/../tmp/standard.ewt.model
-# MODEL=$baseDir/../tmp/standard.example.model
+TRAIN_DATA=$baseDir/../test/fixtures/standard.recursion.conllu
+MODEL=$baseDir/../tmp/standard.fixtures.model
 EPOCH=1
-LOG_VERBOSITY=0 # info
+LOG_VERBOSITY=1 # info
 
 # functions
 
