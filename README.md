@@ -7,17 +7,17 @@
 
 # 目录
 
-* [数据](https://github.com/Samurais/text-dependency-parser#%E6%95%B0%E6%8D%AE)
+* [数据](https://github.com/chatopera/text-dependency-parser#%E6%95%B0%E6%8D%AE)
 
-* [运行程序：训练模型和评测](https://github.com/Samurais/text-dependency-parser#%E6%89%A7%E8%A1%8C)
+* [运行程序：训练模型和评测](https://github.com/chatopera/text-dependency-parser#%E6%89%A7%E8%A1%8C)
 
-* [浏览依存关系](https://github.com/Samurais/text-dependency-parser#%E6%B5%8F%E8%A7%88%E4%BE%9D%E5%AD%98%E5%85%B3%E7%B3%BB)
+* [浏览依存关系](https://github.com/chatopera/text-dependency-parser#%E6%B5%8F%E8%A7%88%E4%BE%9D%E5%AD%98%E5%85%B3%E7%B3%BB)
 
-* [附录：词性解释](https://github.com/Samurais/text-dependency-parser#%E8%AF%8D%E6%80%A7%E8%A7%A3%E9%87%8A)
+* [附录：词性解释](https://github.com/chatopera/text-dependency-parser#%E8%AF%8D%E6%80%A7%E8%A7%A3%E9%87%8A)
 
-* [附录：句法分析（句法树）](https://github.com/Samurais/text-dependency-parser#%E5%8F%A5%E6%B3%95%E5%88%86%E6%9E%90%E5%8F%A5%E6%B3%95%E6%A0%91)
+* [附录：句法分析（句法树）](https://github.com/chatopera/text-dependency-parser#%E5%8F%A5%E6%B3%95%E5%88%86%E6%9E%90%E5%8F%A5%E6%B3%95%E6%A0%91)
 
-* [附录：关系表示](https://github.com/Samurais/text-dependency-parser#%E5%85%B3%E7%B3%BB%E8%A1%A8%E7%A4%BA)
+* [附录：关系表示](https://github.com/chatopera/text-dependency-parser#%E5%85%B3%E7%B3%BB%E8%A1%A8%E7%A4%BA)
 
 # 数据
 格式说明: [CoNLL-U Format](http://universaldependencies.org/docs/format.html)
@@ -55,7 +55,7 @@ https://github.com/UniversalDependencies/UD_English-EWT
 
 [清华和哈工大提供的训练集和开发集](./data/evsam05)
 
-查看[其他数据集](https://github.com/Samurais/text-dependency-parser/issues/2)。
+查看[其他数据集](https://github.com/chatopera/text-dependency-parser/issues/2)。
 
 # 算法
 
@@ -108,7 +108,7 @@ I0316 23:19:25.391916 140736085984064 eager.py:159] assigned: 0.97952047952
 
 ## 浏览依存关系
 
-使用 conllu.js 浏览依存关系：打开[网页](http://samurais.github.io/conllu.js/)，点击"edit"按钮，然后粘贴CoNLL-U 格式内容到编辑器中。比如粘贴下面的内容到[conllu.js](http://samurais.github.io/conllu.js/) 网页中。
+使用 conllu.js 浏览依存关系：打开[网页](http://hailiang-wang.github.io/conllu.js/)，点击"edit"按钮，然后粘贴CoNLL-U 格式内容到编辑器中。比如粘贴下面的内容到[conllu.js](http://samurais.github.io/conllu.js/) 网页中。
 
 ```
 1 就 _ RB RB _ 7 mark _ SpaceAfter=No
@@ -239,7 +239,7 @@ PRP:pronoun,possessive所有格代词RB:adverb副词RBR:adverb,comparative副词
 WRB:Wh-adverb WH副词
 ```
 
-[中文词性标注标准：ICTPOS3.0词性标记集](http://samurais.github.io/development/2017/04/28/chinese-pos-tagging/)
+[中文词性标注标准：ICTPOS3.0词性标记集](http://hailiang-wang.github.io/development/2017/04/28/chinese-pos-tagging/)
 
 ### 句法分析（句法树）
 
